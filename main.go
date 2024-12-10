@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/oussamasf/pito/internal/config"
 )
 
 var db = make(map[string]string)
@@ -68,6 +70,9 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
+	config.Init()
+	fmt.Print("s3Bucket")
+
 	r := setupRouter()
 	// Listen and Server in 0.0.0.0:8080
 	r.Run(":8080")
