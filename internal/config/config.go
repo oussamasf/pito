@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
+	db "github.com/oussamasf/pito/pkg/databases"
 )
 
 // ? Struct to define environment variables with validation tags
@@ -61,4 +62,15 @@ func Load() (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+func GetDBConfig() db.Config {
+	return db.Config{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		User:     os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   os.Getenv("DB_NAME"),
+		SSLMode:  "disable",
+	}
 }
