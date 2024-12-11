@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/oussamasf/pito/internal/config"
+	"github.com/oussamasf/pito/pkg/databases"
 )
 
 var db = make(map[string]string)
@@ -63,6 +64,8 @@ func main() {
 		log.Fatal("Failed to validate config file")
 	}
 	gin.SetMode(gin.ReleaseMode)
+
+	databases.Init(env)
 
 	r := setupRouter()
 

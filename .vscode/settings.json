@@ -3,6 +3,7 @@
     "godotenv",
     "gonic",
     "joho",
-    "pito"
+    "pito",
+    "sslmode"
   ]
 }

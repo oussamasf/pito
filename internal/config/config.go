@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -12,7 +13,23 @@ import (
 type Config struct {
 	Port     string `validate:"required,numeric"`
 	Env      string `validate:"required,oneof=development production testing"`
-	Database string `validate:"required,url"`
+	Database struct {
+		Host     string `validate:"required"`
+		Port     string `validate:"required,numeric"`
+		Username string `validate:"required"`
+		Password string `validate:"required"`
+		DBName   string `validate:"required"`
+	} `validate:"required"`
+}
+
+func (c *Config) Validate() error {
+	validate := validator.New()
+
+	if err := validate.Struct(c); err != nil {
+		return fmt.Errorf("config validation error: %w", err)
+	}
+
+	return nil
 }
 
 // ? Load environment variables, map them to the struct, and validate
@@ -22,15 +39,24 @@ func Load() (*Config, error) {
 	}
 
 	config := Config{
-		Port:     os.Getenv("PORT"),
-		Env:      os.Getenv("ENV"),
-		Database: os.Getenv("DATABASE_URL"),
+		Port: os.Getenv("PORT"),
+		Env:  os.Getenv("ENV"),
+		Database: struct {
+			Host     string `validate:"required"`
+			Port     string `validate:"required,numeric"`
+			Username string `validate:"required"`
+			Password string `validate:"required"`
+			DBName   string `validate:"required"`
+		}{
+			Host:     os.Getenv("DB_HOST"),
+			Port:     os.Getenv("DB_PORT"),
+			Username: os.Getenv("DB_USERNAME"),
+			Password: os.Getenv("DB_PASSWORD"),
+			DBName:   os.Getenv("DB_NAME"),
+		},
 	}
 
-	validate := validator.New()
-
-	//? Validate the struct
-	if err := validate.Struct(config); err != nil {
+	if err := config.Validate(); err != nil {
 		return nil, err
 	}
 
