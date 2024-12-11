@@ -1,22 +1,38 @@
 package config
 
 import (
-	"fmt"
 	"log"
+	"os"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 )
 
-func Init() {
-	var myEnv map[string]string
-	myEnv, err := godotenv.Read()
+// ? Struct to define environment variables with validation tags
+type Config struct {
+	Port     string `validate:"required,numeric"`
+	Env      string `validate:"required,oneof=development production testing"`
+	Database string `validate:"required,url"`
+}
 
-	s3Bucket := myEnv["S3_BUCKET"]
-	if err != nil {
-		log.Fatal("Error loading .env file")
+// ? Load environment variables, map them to the struct, and validate
+func Load() (*Config, error) {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables instead.")
 	}
 
-	fmt.Print(s3Bucket)
+	config := Config{
+		Port:     os.Getenv("PORT"),
+		Env:      os.Getenv("ENV"),
+		Database: os.Getenv("DATABASE_URL"),
+	}
 
-	// now do something with s3 or whatever
+	validate := validator.New()
+
+	//? Validate the struct
+	if err := validate.Struct(config); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }
