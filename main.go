@@ -7,10 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/oussamasf/pito/internal/config"
-	"github.com/oussamasf/pito/pkg/databases"
+	db "github.com/oussamasf/pito/pkg/databases"
 )
-
-var db = make(map[string]string)
 
 func setupRouter() *gin.Engine {
 	// Disable Console Color
@@ -24,36 +22,6 @@ func setupRouter() *gin.Engine {
 		c.String(http.StatusOK, "pong")
 	})
 
-	// Get user value
-	r.GET("/user/:name", func(c *gin.Context) {
-		user := c.Params.ByName("name")
-		value, ok := db[user]
-		if ok {
-			c.JSON(http.StatusOK, gin.H{"user": user, "value": value})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
-		}
-	})
-
-	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
-		"foo": "bar", // user:foo password:bar
-		"bar": "123", // user:bar password:123
-	}))
-
-	authorized.POST("admin", func(c *gin.Context) {
-		user := c.MustGet(gin.AuthUserKey).(string)
-
-		// Parse JSON
-		var json struct {
-			Value string `json:"value" binding:"required"`
-		}
-
-		if c.Bind(&json) == nil {
-			db[user] = json.Value
-			c.JSON(http.StatusOK, gin.H{"status": "ok"})
-		}
-	})
-
 	return r
 }
 
@@ -65,7 +33,13 @@ func main() {
 	}
 	gin.SetMode(gin.ReleaseMode)
 
-	databases.Init(env)
+	dbConfig := config.GetDBConfig()
+
+	dbErr := db.Initialize(dbConfig)
+	if dbErr != nil {
+		log.Fatal("Failed to initialize database:", err)
+	}
+	defer db.Close()
 
 	r := setupRouter()
 
