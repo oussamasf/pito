@@ -35,7 +35,7 @@ func main() {
 
 	dbConfig := config.GetDBConfig()
 
-	dbErr := db.Initialize(dbConfig)
+	dbErr := db.Initialize(&dbConfig)
 	if dbErr != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}

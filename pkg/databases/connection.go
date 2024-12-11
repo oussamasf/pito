@@ -30,7 +30,7 @@ func GetDB() *sql.DB {
 }
 
 // Initialize initializes the database connection
-func Initialize(config Config) error {
+func Initialize(config *Config) error {
 	var err error
 
 	once.Do(func() {
@@ -66,7 +66,7 @@ func Close() {
 	}
 }
 
-func generateConnectionString(config Config) string {
+func generateConnectionString(config *Config) string {
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		config.Host,
