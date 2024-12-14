@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 
-	_ "github.com/lib/pq"
+	models "github.com/oussamasf/pito/internal/models/users"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var (
@@ -24,42 +25,32 @@ type Config struct {
 	SSLMode  string
 }
 
-// GetDB returns the database instance
 func GetDB() *sql.DB {
 	return db
 }
 
-// Initialize initializes the database connection
 func Initialize(config *Config) error {
 	var err error
 
 	once.Do(func() {
 		connStr := generateConnectionString(config)
-		db, err = sql.Open("postgres", connStr)
+		db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to connect to database: %v", err)
 			return
 		}
 
-		// Test the connection
-		err = db.Ping()
+		err = db.AutoMigrate(&models.User{})
 		if err != nil {
-			log.Fatal(err)
-			return
+			log.Fatalf("Failed to auto-migrate models: %v", err)
 		}
 
-		// Set connection pool settings
-		db.SetMaxOpenConns(25)
-		db.SetMaxIdleConns(25)
-		db.SetConnMaxLifetime(5 * time.Minute)
-
-		log.Println("Database connection established")
+		log.Println("Database connected and models migrated!")
 	})
 
 	return err
 }
 
-// Close closes the database connection
 func Close() {
 	if db != nil {
 		db.Close()
